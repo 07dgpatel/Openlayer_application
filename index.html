@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Openlayer</title>
+  <!-- Openlayer JS -->
+  <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v6.0.1/build/ol.js"></script>
+  <!-- Openlayer CSS -->
+  <link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v6.0.1/css/ol.css">
+
+
+</head>
+<style>
+  /* map div */
+  *{
+    margin:0;
+    padding:0;
+    
+ 
+  }
+ 
+ .map  {
+   
+    height: 100%;
+    width: 100%;
+    position:absolute;
+    z-index: 0;
+  }
+ 
+
+
+
+
+  /* zoom button */
+  .ol-control {
+    border: 2px solid rgba(0, 0, 0, 0.2) !important;
+
+  }
+
+  .ol-control button {
+    background-color: white !important;
+    color: black;
+    height: 1.8rem;
+    width: 1.6rem;
+    margin-bottom: 2px solid black;
+    padding: 0;
+    font-size: 20px;
+    font-weight: 1000;
+    box-shadow: rgba(15, 15, 15, 0.5);
+
+  }
+
+
+  .ol-zoom-in {
+    border-bottom: 1.3px solid #ccc !important;
+  }
+
+  .ol-control button:hover {
+    background-color: rgba(241, 240, 240, 0.39) !important;
+    color: black;
+    margin: 0;
+    padding: 0;
+  }
+
+  button:focus {
+    outline: none !important;
+  }
+
+  /* Scaleline */
+  .ol-scale-line {
+    background: rgba(255, 255, 255, 0.5)
+  }
+
+  .ol-scale-line-inner {
+    border: 1px solid black !important;
+    border-top: none !important;
+    color: black !important;
+  }
+
+  #latlong {
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid black;
+    padding: 5px 10px;
+  }
+
+  /* Roate button */
+  .ol-rotate {
+    top: 3.5rem;
+    right: 0.5rem;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* full Screen */
+  .ol-full-screen {
+    top: 1rem;
+    right: 0.5rem;
+  }
+
+  #mouse-position {
+    border-radius: 8px !important;
+    border: 1px solid black !important;
+    position: absolute !important;
+    z-index: 1 !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+    bottom: 1% !important;
+    left: 42% !important;
+    padding: 5px;
+  }
+
+  #mouse-position {
+    border-radius: 8px !important;
+    /* border: 1px solid black!important; */
+    position: absolute !important;
+    z-index: 1 !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+    bottom: 1% !important;
+    left: 42% !important;
+    padding: 5px;
+  }
+
+  /* zoom Slider and zoom extent */
+  .ol-zoom-extent {
+    top: 4.89em !important;
+  }
+
+  .ol-zoomslider {
+    top: 7.4em !important;
+
+  }
+
+  .ol-control .ol-zoomslider-thumb {
+    background: rgba(0, 0, 0, 0.2) !important;
+
+  }
+
+  .ol-control .ol-zoomslider-thumb:hover {
+    background: rgba(0, 0, 0, 0.2) !important;
+  }
+</style>
+
+<body>
+  <div id="map" class="map">
+
+    <div id="latlong"></div>
+    <div id="mouse-position"></div>
+
+  </div>
+  </div>
+
+  <script type="text/javascript">
+    // var defaultStyle = {
+    //   'Point': new ol.style.Style({
+    //     image: new ol.style.Circle({
+    //       fill: new ol.style.Fill({
+    //         color: 'rgba(255,255,0,0.5)'
+    //       }),
+    //       radius: 5,
+    //       stroke: new ol.style.Stroke({
+    //         color: '#ff0',
+    //         width: 1
+    //       })
+    //     })
+    //   }),
+    //   'LineString': new ol.style.Style({
+    //     stroke: new ol.style.Stroke({
+    //       color: '#f00',
+    //       width: 3
+    //     })
+    //   }),
+    //   'Polygon': new ol.style.Style({
+    //     fill: new ol.style.Fill({
+    //       color: 'rgba(0,255,255,0.5)'
+    //     }),
+    //     stroke: new ol.style.Stroke({
+    //       color: '#0ff',
+    //       width: 1
+    //     })
+    //   }),
+    //   'MultiPoint': new ol.style.Style({
+    //     image: new ol.style.Circle({
+    //       fill: new ol.style.Fill({
+    //         color: 'rgba(255,0,255,0.5)'
+    //       }),
+    //       radius: 5,
+    //       stroke: new ol.style.Stroke({
+    //         color: '#f0f',
+    //         width: 1
+    //       })
+    //     })
+    //   }),
+    //   'MultiLineString': new ol.style.Style({
+    //     stroke: new ol.style.Stroke({
+    //       color: '#0f0',
+    //       width: 3
+    //     })
+    //   }),
+    //   'MultiPolygon': new ol.style.Style({
+    //     fill: new ol.style.Fill({
+    //       color: 'rgba(0,0,255,0.5)'
+    //     }),
+    //     stroke: new ol.style.Stroke({
+    //       color: '#00f',
+    //       width: 1
+    //     })
+    //   })
+    // };
+
+    // var styleFunction = function (feature, resolution) {
+    //   var featureStyleFunction = feature.getStyleFunction();
+    //   if (featureStyleFunction) {
+    //     return featureStyleFunction.call(feature, resolution);
+    //   } else {
+    //     return defaultStyle[feature.getGeometry().getType()];
+    //   }
+    // };
+
+    // var dragAndDropInteraction = new ol.interaction.DragAndDrop({
+    //   formatConstructors: [
+    //     ol.format.GPX,
+    //     ol.format.GeoJSON,
+    //     ol.format.IGC,
+    //     ol.format.KML,
+    //     ol.format.TopoJSON
+    //   ]
+    // });
+    // basmap from mapbox
+
+
+
+    const map = new ol.Map({
+
+      layers: [
+        new ol.layer.Tile({
+          // source: new ol.source.XYZ({
+          //   url: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGdwYXRlbDAxIiwiYSI6ImNrMWtpM3N6YzB5YjAzY3BnY2thbHVldWgifQ.-V37AdCaq8O0jCWgCPS4nw'
+
+          // })
+          source: new ol.source.OSM()
+        })
+      ],
+      target: 'map',
+
+
+      // Add scale line ,FullScreen,ZoomSlider ,
+      // ZoomtoExtent and MousePosition code
+      controls: ol.control.defaults().extend([
+        new ol.control.ScaleLine(),
+        new ol.control.FullScreen(),
+
+        new ol.control.ZoomSlider(),
+        new ol.control.ZoomToExtent({
+          extent: [
+          79.198457,17.248072,
+          79.281542,17.351927
+          ]
+        }),
+        new ol.control.MousePosition({
+          className: 'custom-mouse-position',
+          coordinateFormat: function (coordinate) {
+            return ol.coordinate.format(coordinate, 'Long:{x}, Lat:{y}', 4);
+          },
+
+          projection: 'EPSG:4326',
+          target: 'mouse-position',
+          undefinedHTML: ""
+
+        })
+
+      ]),
+      // Rotation
+      interactions: ol.interaction.defaults().extend([new ol.interaction.DragRotateAndZoom()]),
+
+      // add map view code
+      view: new ol.View({
+        projection: 'EPSG:4326',
+        center: [79.24,17.30],
+        zoom: 13,
+
+      })
+    });
+
+ 
+    // add wms Layer
+    var akkene = new ol.layer.Image({
+      source: new ol.source.ImageWMS({
+        url: 'https://wms.qgiscloud.com/07dgpatel/Akke/wms',
+        params: {
+          "LAYERS": 'Akkene_Palle'
+        },
+
+      })
+    });
+
+    map.addLayer(akkene);
+
+    // dragAndDropInteraction.on('addfeatures', function (event) {
+    //   var vectorSource = new ol.source.Vector({
+    //     features: event.features
+    //   });
+    //   map.addLayer(new ol.layer.Vector({
+    //     source: vectorSource,
+    //     style: styleFunction
+    //   }));
+    //   map.getView().fit(
+    //     vectorSource.getExtent(), /** @type {ol.Size} */ (map.getSize()));
+    // });
+
+    // var displayFeatureInfo = function (pixel) {
+    //   var features = [];
+    //   map.forEachFeatureAtPixel(pixel, function (feature) {
+    //     features.push(feature);
+    //   });
+    //   if (features.length > 0) {
+    //     var info = [];
+    //     var i, ii;
+    //     for (i = 0, ii = features.length; i < ii; ++i) {
+    //       info.push(features[i].get('name'));
+    //     }
+    //     document.getElementById('info').innerHTML = info.join(', ') || '&nbsp';
+    //   } else {
+    //     document.getElementById('info').innerHTML = '&nbsp;';
+    //   }
+    // };
+
+    // map.on('pointermove', function (evt) {
+    //   if (evt.dragging) {
+    //     return;
+    //   }
+    //   var pixel = map.getEventPixel(evt.originalEvent);
+    //   displayFeatureInfo(pixel);
+    // });
+
+    // map.on('click', function (evt) {
+    //   displayFeatureInfo(evt.pixel);
+    // });
+// on map click pop lallong code
+    var latlong = new ol.Overlay({
+      element: document.getElementById('latlong'),
+      positioning: 'bottom-center'
+    });
+
+    // register an event handler for the click event
+    map.on('click', function (event) {
+      // extract the spatial coordinate of the click event in map projection units
+      var coord = event.coordinate;
+      // transform it to decimal degrees
+      // var degrees = ol.proj.toLonLat(coord);
+      // format a human readable version
+      var hdms = ol.coordinate.format(coord, 'Long:{x}, Lat:{y}', 6)
+      // var hdms1 = ol.coordinate.toStringXY(hdms,6);
+      // update the overlay element's content
+      var element = latlong.getElement();
+      element.innerHTML = hdms;
+      // position the element (using the coordinate in the map's projection)
+      latlong.setPosition(coord);
+      // and add it to the map
+      map.addOverlay(latlong);
+    });
+  </script>
+
+</body>
+
+</html>
