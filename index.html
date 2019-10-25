@@ -10,26 +10,29 @@
   <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v6.0.1/build/ol.js"></script>
   <!-- Openlayer CSS -->
   <link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v6.0.1/css/ol.css">
+  <!-- LayerSwitcher js & CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/ol-layerswitcher@3.4.0/src/ol-layerswitcher.css" />
+  <script src="https://unpkg.com/ol-layerswitcher@3.4.0"></script>
 
 
 </head>
 <style>
   /* map div */
-  *{
-    margin:0;
-    padding:0;
-    
- 
+  * {
+    margin: 0;
+    padding: 0;
+
+
   }
- 
- .map  {
-   
+
+  .map {
+
     height: 100%;
     width: 100%;
-    position:absolute;
+    position: absolute;
     z-index: 0;
   }
- 
+
 
 
 
@@ -127,6 +130,7 @@
   .ol-zoom-extent {
     top: 4.89em !important;
   }
+ 
 
   .ol-zoomslider {
     top: 7.4em !important;
@@ -141,6 +145,20 @@
   .ol-control .ol-zoomslider-thumb:hover {
     background: rgba(0, 0, 0, 0.2) !important;
   }
+
+  /* layerSwitcher */
+  .layer-switcher{
+    top:6.0em!important;  
+  }
+  .layer-switcher button{
+   
+    background-position:center;
+  }
+  .layer-switcher.shown{
+    bottom: 25.7rem !important;
+  }
+  
+  
 </style>
 
 <body>
@@ -148,115 +166,102 @@
 
     <div id="latlong"></div>
     <div id="mouse-position"></div>
-
+  
   </div>
   </div>
 
   <script type="text/javascript">
-    // var defaultStyle = {
-    //   'Point': new ol.style.Style({
-    //     image: new ol.style.Circle({
-    //       fill: new ol.style.Fill({
-    //         color: 'rgba(255,255,0,0.5)'
-    //       }),
-    //       radius: 5,
-    //       stroke: new ol.style.Stroke({
-    //         color: '#ff0',
-    //         width: 1
-    //       })
-    //     })
-    //   }),
-    //   'LineString': new ol.style.Style({
-    //     stroke: new ol.style.Stroke({
-    //       color: '#f00',
-    //       width: 3
-    //     })
-    //   }),
-    //   'Polygon': new ol.style.Style({
-    //     fill: new ol.style.Fill({
-    //       color: 'rgba(0,255,255,0.5)'
-    //     }),
-    //     stroke: new ol.style.Stroke({
-    //       color: '#0ff',
-    //       width: 1
-    //     })
-    //   }),
-    //   'MultiPoint': new ol.style.Style({
-    //     image: new ol.style.Circle({
-    //       fill: new ol.style.Fill({
-    //         color: 'rgba(255,0,255,0.5)'
-    //       }),
-    //       radius: 5,
-    //       stroke: new ol.style.Stroke({
-    //         color: '#f0f',
-    //         width: 1
-    //       })
-    //     })
-    //   }),
-    //   'MultiLineString': new ol.style.Style({
-    //     stroke: new ol.style.Stroke({
-    //       color: '#0f0',
-    //       width: 3
-    //     })
-    //   }),
-    //   'MultiPolygon': new ol.style.Style({
-    //     fill: new ol.style.Fill({
-    //       color: 'rgba(0,0,255,0.5)'
-    //     }),
-    //     stroke: new ol.style.Stroke({
-    //       color: '#00f',
-    //       width: 1
-    //     })
-    //   })
-    // };
-
-    // var styleFunction = function (feature, resolution) {
-    //   var featureStyleFunction = feature.getStyleFunction();
-    //   if (featureStyleFunction) {
-    //     return featureStyleFunction.call(feature, resolution);
-    //   } else {
-    //     return defaultStyle[feature.getGeometry().getType()];
-    //   }
-    // };
-
-    // var dragAndDropInteraction = new ol.interaction.DragAndDrop({
-    //   formatConstructors: [
-    //     ol.format.GPX,
-    //     ol.format.GeoJSON,
-    //     ol.format.IGC,
-    //     ol.format.KML,
-    //     ol.format.TopoJSON
-    //   ]
-    // });
-    // basmap from mapbox
+    
+    // basmap from mapbox commented and add openstreet map
 
 
+    var OSM = new ol.layer.Tile({
+      title: 'OSM',
+      type: 'base',
+      // source: new ol.source.XYZ({
+      //   url: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGdwYXRlbDAxIiwiYSI6ImNrMWtpM3N6YzB5YjAzY3BnY2thbHVldWgifQ.-V37AdCaq8O0jCWgCPS4nw'
 
+      // })
+      source: new ol.source.OSM(),
+    });
+
+    // wms layer - parcel file
+    var akkene = new ol.layer.Image({
+      title: 'Akkene',
+      
+      source: new ol.source.ImageWMS({
+        url: 'https://wms.qgiscloud.com/07dgpatel/Akke/wms',
+        params: {
+          "LAYERS": 'Akkene_Palle'
+        },
+      })
+    });
+// add geojson file 
+    var choropleth = new ol.layer.Vector({
+      title: 'Choropleth',
+      source: new ol.source.Vector({
+        url: 'India_ac.js',
+        format: new ol.format.GeoJSON()
+      }),
+      style: function (feature, resolution) {
+        return getStyle(feature, resolution);
+      }
+    });
+
+    getStyle = function (feature, resolution) {
+      if (feature.get('id') < 100) {
+        return new ol.style.Style({
+
+          fill: new ol.style.Fill({
+            color: [255, 0, 0, 1] // semi-transparent red
+          })
+        });
+      }
+      // elif (feature.get('id') < 200) {
+      //   return new ol.style.Style({
+
+      //     fill: new ol.style.Fill({
+      //       color: [255,255, 0, 1] // semi-transparent red
+      //     })
+      //   });
+      // }
+      // else if ...
+      else {
+        return new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: [255, 255, 0, 0.5] // semi-transparent yellow
+          })
+        });
+      }
+    };
+
+// baselayer Group create for layer switcher
+    var baselayer = new ol.layer.Group({
+      title:'Base Layer',
+      fold: 'open',
+      layers: [OSM]
+      });
+// layer Group create for layer switcher
+    var Layer = new ol.layer.Group({
+            title: 'Layer',
+            fold: 'open',
+            layers: [akkene,choropleth]
+   });
+  
+  // main view create map
     const map = new ol.Map({
-
-      layers: [
-        new ol.layer.Tile({
-          // source: new ol.source.XYZ({
-          //   url: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGdwYXRlbDAxIiwiYSI6ImNrMWtpM3N6YzB5YjAzY3BnY2thbHVldWgifQ.-V37AdCaq8O0jCWgCPS4nw'
-
-          // })
-          source: new ol.source.OSM()
-        })
-      ],
+      layers: [baselayer,Layer],
       target: 'map',
-
-
       // Add scale line ,FullScreen,ZoomSlider ,
       // ZoomtoExtent and MousePosition code
       controls: ol.control.defaults().extend([
         new ol.control.ScaleLine(),
         new ol.control.FullScreen(),
-
         new ol.control.ZoomSlider(),
         new ol.control.ZoomToExtent({
           extent: [
-          79.198457,17.248072,
-          79.281542,17.351927
+            79.198457, 17.248072,
+            79.281542, 17.351927
           ]
         }),
         new ol.control.MousePosition({
@@ -264,7 +269,6 @@
           coordinateFormat: function (coordinate) {
             return ol.coordinate.format(coordinate, 'Long:{x}, Lat:{y}', 4);
           },
-
           projection: 'EPSG:4326',
           target: 'mouse-position',
           undefinedHTML: ""
@@ -273,72 +277,24 @@
 
       ]),
       // Rotation
-      interactions: ol.interaction.defaults().extend([new ol.interaction.DragRotateAndZoom()]),
+      interactions: ol.interaction.defaults().extend([
+        new ol.interaction.DragRotateAndZoom(),
+        new ol.interaction.DragPan()
+      ]),
 
       // add map view code
       view: new ol.View({
         projection: 'EPSG:4326',
-        center: [79.24,17.30],
+        center: [79.24, 17.30],
         zoom: 13,
 
       })
     });
 
- 
-    // add wms Layer
-    var akkene = new ol.layer.Image({
-      source: new ol.source.ImageWMS({
-        url: 'https://wms.qgiscloud.com/07dgpatel/Akke/wms',
-        params: {
-          "LAYERS": 'Akkene_Palle'
-        },
-
-      })
-    });
-
-    map.addLayer(akkene);
-
-    // dragAndDropInteraction.on('addfeatures', function (event) {
-    //   var vectorSource = new ol.source.Vector({
-    //     features: event.features
-    //   });
-    //   map.addLayer(new ol.layer.Vector({
-    //     source: vectorSource,
-    //     style: styleFunction
-    //   }));
-    //   map.getView().fit(
-    //     vectorSource.getExtent(), /** @type {ol.Size} */ (map.getSize()));
-    // });
-
-    // var displayFeatureInfo = function (pixel) {
-    //   var features = [];
-    //   map.forEachFeatureAtPixel(pixel, function (feature) {
-    //     features.push(feature);
-    //   });
-    //   if (features.length > 0) {
-    //     var info = [];
-    //     var i, ii;
-    //     for (i = 0, ii = features.length; i < ii; ++i) {
-    //       info.push(features[i].get('name'));
-    //     }
-    //     document.getElementById('info').innerHTML = info.join(', ') || '&nbsp';
-    //   } else {
-    //     document.getElementById('info').innerHTML = '&nbsp;';
-    //   }
-    // };
-
-    // map.on('pointermove', function (evt) {
-    //   if (evt.dragging) {
-    //     return;
-    //   }
-    //   var pixel = map.getEventPixel(evt.originalEvent);
-    //   displayFeatureInfo(pixel);
-    // });
-
-    // map.on('click', function (evt) {
-    //   displayFeatureInfo(evt.pixel);
-    // });
-// on map click pop lallong code
+// add layer switcher
+    map.addControl(new ol.control.LayerSwitcher());
+    
+    // on map click pop lallong code
     var latlong = new ol.Overlay({
       element: document.getElementById('latlong'),
       positioning: 'bottom-center'
@@ -361,6 +317,8 @@
       // and add it to the map
       map.addOverlay(latlong);
     });
+
+    
   </script>
 
 </body>
