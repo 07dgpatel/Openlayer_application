@@ -130,7 +130,9 @@
   .ol-zoom-extent {
     top: 4.89em !important;
   }
- 
+  .ol-zoom-extent button{
+    background-image: url('image/leaflet.defaultextent.png');
+  }
 
   .ol-zoomslider {
     top: 7.4em !important;
@@ -259,6 +261,7 @@
         new ol.control.FullScreen(),
         new ol.control.ZoomSlider(),
         new ol.control.ZoomToExtent({
+          label:'',
           extent: [
             79.198457, 17.248072,
             79.281542, 17.351927
